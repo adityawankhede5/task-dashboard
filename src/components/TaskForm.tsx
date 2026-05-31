@@ -2,7 +2,7 @@ import type React from "react"
 import { TASK_STATUS, type AddTaskPayload, type Task, type TaskStatus, type UpdateTaskPayload } from "../types/task.types";
 import { useDispatch } from "react-redux";
 import { addTask, updateTask } from "../store/slices/task.slice";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { isoToDateInput, localDateToISO } from "../utils/date.utils";
 
 type TaskFormProps = {
@@ -10,22 +10,51 @@ type TaskFormProps = {
     onDone?: () => void
 }
 
+type FormErrors = {
+    title?: string,
+    dueDate?: string
+}
+
 export default function TaskForm(props: TaskFormProps) {
     const { selectedTask } = props;
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [dueDate, setDueDate] = useState("");
-    const [status, setStatus] = useState<TaskStatus>(TASK_STATUS.PENDING)
+    const [title, setTitle] = useState(selectedTask?.title ?? "");
+    const [description, setDescription] = useState(selectedTask?.description ?? "");
+    const [dueDate, setDueDate] = useState(selectedTask?.dueDate ? isoToDateInput(selectedTask.dueDate) : "");
+    const [status, setStatus] = useState<TaskStatus>(selectedTask?.status ?? TASK_STATUS.PENDING)
+    const [errors, setErrors] = useState<FormErrors>({})
+    const dueDateInputRef = useRef<HTMLInputElement>(null);
     const dispatch = useDispatch();
+
+    const validateForm = () => {
+        const nextErrors: FormErrors = {};
+        const trimmedTitle = title.trim();
+
+        if (!trimmedTitle) {
+            nextErrors.title = "Title is required.";
+        } else if (trimmedTitle.length < 3) {
+            nextErrors.title = "Title must be at least 3 characters.";
+        }
+
+        if (dueDateInputRef.current?.validity.badInput) {
+            nextErrors.dueDate = "Date is not valid.";
+        } else if (!dueDate) {
+            nextErrors.dueDate = "Due date is required.";
+        }
+
+        setErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    }
+
     const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!title) return;
-        if (!dueDate) return;
+        if (!validateForm()) return;
+
+        const trimmedTitle = title.trim();
         const dueDateISO = localDateToISO(dueDate)
         if (selectedTask?.id) {
             const updatedTask: UpdateTaskPayload = {
                 id: selectedTask.id,
-                title: title,
+                title: trimmedTitle,
                 description: description,
                 dueDate: dueDateISO,
                 status: status
@@ -34,7 +63,7 @@ export default function TaskForm(props: TaskFormProps) {
             props.onDone?.()
         } else {
             const newTask: AddTaskPayload = {
-                title,
+                title: trimmedTitle,
                 description,
                 dueDate: dueDateISO
             }
@@ -43,33 +72,26 @@ export default function TaskForm(props: TaskFormProps) {
         }
 
     }
-
-    useEffect(() => {
-        /* eslint-disable react-hooks/set-state-in-effect */
-        setTitle(selectedTask?.title ?? "")
-        setDescription(selectedTask?.description ?? "")
-        if (selectedTask?.dueDate) {
-            const isoToLocalDate = isoToDateInput(selectedTask?.dueDate)
-            setDueDate(isoToLocalDate);
-        } else {
-            setDueDate("")
-        }
-        setStatus(selectedTask?.status ?? TASK_STATUS.PENDING)
-        /* eslint-enable react-hooks/set-state-in-effect */
-    }, [selectedTask])
     return (
-        <form className="space-y-4 p-5" onSubmit={handleSubmit}>
+        <form className="space-y-4 p-5" onSubmit={handleSubmit} noValidate>
             <label className="block">
                 <span className="mb-1.5 block text-sm font-medium text-slate-700">Title</span>
                 <input
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition placeholder:text-slate-400 focus:ring-2 ${errors.title ? "border-red-400 focus:border-red-500 focus:ring-red-100" : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"}`}
                     type="text"
                     placeholder="Task title"
                     name="title"
-                    required
+                    aria-invalid={Boolean(errors.title)}
+                    aria-describedby={errors.title ? "title-error" : undefined}
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                        setTitle(e.target.value)
+                        if (errors.title) {
+                            setErrors((currentErrors) => ({ ...currentErrors, title: undefined }))
+                        }
+                    }}
                 />
+                {errors.title && <p className="mt-1.5 text-sm text-red-600" id="title-error">{errors.title}</p>}
             </label>
             <label className="block">
                 <span className="mb-1.5 block text-sm font-medium text-slate-700">Description</span>
@@ -86,13 +108,22 @@ export default function TaskForm(props: TaskFormProps) {
                 <label className="block">
                     <span className="mb-1.5 block text-sm font-medium text-slate-700">Due date</span>
                     <input
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        ref={dueDateInputRef}
+                        className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 ${errors.dueDate ? "border-red-400 focus:border-red-500 focus:ring-red-100" : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"}`}
                         type="date"
                         placeholder="Due Date"
                         name="dueDate"
+                        aria-invalid={Boolean(errors.dueDate)}
+                        aria-describedby={errors.dueDate ? "due-date-error" : undefined}
                         value={dueDate}
-                        onChange={(e) => setDueDate(e.target.value)}
+                        onChange={(e) => {
+                            setDueDate(e.target.value)
+                            if (errors.dueDate) {
+                                setErrors((currentErrors) => ({ ...currentErrors, dueDate: undefined }))
+                            }
+                        }}
                     />
+                    {errors.dueDate && <p className="mt-1.5 text-sm text-red-600" id="due-date-error">{errors.dueDate}</p>}
                 </label>
                 <label className="block">
                     <span className="mb-1.5 block text-sm font-medium text-slate-700">Status</span>

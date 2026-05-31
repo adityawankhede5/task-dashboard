@@ -66,7 +66,11 @@ export default function AllTasksPage() {
                                 <X size={20} />
                             </button>
                         </div>
-                        <TaskForm selectedTask={isEditing ? selectedTask : null} onDone={closeModal} />
+                        <TaskForm
+                            key={isEditing ? selectedTask?.id : "new-task"}
+                            selectedTask={isEditing ? selectedTask : null}
+                            onDone={closeModal}
+                        />
                     </div>
                 </div>
             )}

@@ -10,14 +10,18 @@ export default function FilterBy() {
         dispatch(setFilterBy(e.target.value))
     }
     return (
-        <div>
-            Filter by
-            <select value={filterBy} onChange={handleFilterByChange}>
-                <option value={TASK_FILTER_BY.ALL}>{TASK_FILTER_BY.ALL}</option>
-                <option value={TASK_FILTER_BY.PENDING}>{TASK_FILTER_BY.PENDING}</option>
-                <option value={TASK_FILTER_BY.IN_PROGRESS}>{TASK_FILTER_BY.IN_PROGRESS}</option>
-                <option value={TASK_FILTER_BY.COMPLETED}>{TASK_FILTER_BY.COMPLETED}</option>
+        <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-slate-700">Filter by</span>
+            <select
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                value={filterBy}
+                onChange={handleFilterByChange}
+            >
+                <option value={TASK_FILTER_BY.ALL}>All</option>
+                <option value={TASK_FILTER_BY.PENDING}>Pending</option>
+                <option value={TASK_FILTER_BY.IN_PROGRESS}>In Progress</option>
+                <option value={TASK_FILTER_BY.COMPLETED}>Completed</option>
             </select>
-        </div>
+        </label>
     )
 }

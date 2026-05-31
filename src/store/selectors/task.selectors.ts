@@ -53,7 +53,7 @@ export const selectTasksSummary = createSelector(
 export const selectCompletedTasks = createSelector(
     [selectTaskList],
     (tasksList) => {
-        let result = tasksList.filter(item => item.status === TASK_STATUS.COMPLETED)
+        const result = tasksList.filter(item => item.status === TASK_STATUS.COMPLETED)
         return result;
     }
 )

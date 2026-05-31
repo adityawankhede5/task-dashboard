@@ -10,12 +10,16 @@ export default function SortBy() {
         dispatch(setSortBy(e.target.value as TaskSortBy))
     }
     return (
-        <div>
-            Sort by
-            <select value={sortBy} onChange={handleSortByChange}>
-                <option value={TASK_SORT_BY.CREATED_AT}>{TASK_SORT_BY.CREATED_AT}</option>
-                <option value={TASK_SORT_BY.DUE_DATE}>{TASK_SORT_BY.DUE_DATE}</option>
+        <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-slate-700">Sort by</span>
+            <select
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                value={sortBy}
+                onChange={handleSortByChange}
+            >
+                <option value={TASK_SORT_BY.CREATED_AT}>Created At</option>
+                <option value={TASK_SORT_BY.DUE_DATE}>Due Date</option>
             </select>
-        </div>
+        </label>
     )
 }

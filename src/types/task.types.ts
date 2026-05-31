@@ -9,8 +9,8 @@ export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
 export type TasksSummary = Record<TaskStatus | "all", number>
 
 export const TASK_SORT_BY = {
-    DUE_DATE: "Due Date",
-    CREATED_AT: "Created At"
+    DUE_DATE: "dueDate",
+    CREATED_AT: "createdAt"
 } as const;
 
 export type TaskSortBy = (typeof TASK_SORT_BY)[keyof typeof TASK_SORT_BY]
